@@ -1,16 +1,17 @@
 import { getRepository } from "fireorm";
-import { UsersEntityRegisterDto } from "src/entities/dto/users.entity.dto";
 import { Users } from "src/entities/users.entity";
 import * as bcrypt from "bcrypt";
 import { v4 as uuid } from "uuid";
 import { ConflictException, InternalServerErrorException } from "@nestjs/common";
 import { Logger } from "@nestjs/common";
+import { AuthSignUpCredentialsDto } from "./dto/auth-credentials-signup.dto";
+import { AuthLoginCredentialsDto } from "./dto/auth-credentials-login.dto";
 
 export class AuthRepository {
     private logger = new Logger('AuthRepository');
-    constructor(private authRepository = getRepository(Users)) { }
+    constructor(public usersFirebase = getRepository(Users)) { }
 
-    async register(registerParams: UsersEntityRegisterDto): Promise<void> {
+    async register(registerParams: AuthSignUpCredentialsDto): Promise<void> {
         const { first_name, last_name, email, password } = registerParams;
 
         const user = new Users()
@@ -24,18 +25,26 @@ export class AuthRepository {
         user.tokenExpiaryDate = null
         user.verified = false
 
-        const emailExists = await this.authRepository.whereEqualTo('email', email).find();
+        const emailExists = await this.usersFirebase.whereEqualTo('email', email).find();
         if (emailExists.length > 0) {
             this.logger.error(`User with email: ${email} already exists`);
             throw new ConflictException('User with this email already exist!');
         } else {
-            try { this.authRepository.create(user) }
-            catch (error) { 
+            try { this.usersFirebase.create(user) }
+            catch (error) {
                 this.logger.error(`Internal server error: ${error}`);
-                throw new InternalServerErrorException() 
+                throw new InternalServerErrorException()
             }
         }
 
         this.logger.verbose(`User with email: ${email} successfully registered!`);
+    }
+
+    // Validate login
+    async validateLogin(loginParams: AuthLoginCredentialsDto): Promise<string> {
+        const { email, password } = loginParams;
+        const user = await this.usersFirebase.whereEqualTo('email', email).findOne();
+        if (user && (await user.validatePassword(password))) return user.email;
+        else return null;
     }
 }
