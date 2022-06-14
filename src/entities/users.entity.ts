@@ -22,6 +22,11 @@ export class Users {
 
     // Hash password
     async hashPassword(password: string, salt: string) {
-        return bcrypt.hash(password, salt);
+        return await bcrypt.hash(password, salt);
+    }
+
+    //Delete sensitive data
+    deleteSensitiveData(keys: string[]) {
+        keys.forEach(key => delete this[key]);
     }
 }
