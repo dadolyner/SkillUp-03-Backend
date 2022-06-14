@@ -1,3 +1,4 @@
+// Users Entity
 import { Collection } from 'fireorm'
 import * as bcrypt from 'bcrypt';
 
@@ -10,7 +11,7 @@ export class Users {
     password: string
     salt: string
     token: string
-    tokenExpiaryDate: Date
+    tokenExpiaryDate: string
     verified: boolean
 
     // Validate user password with bcrypt

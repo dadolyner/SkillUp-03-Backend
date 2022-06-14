@@ -1,3 +1,4 @@
+// Events Entity
 import { Collection } from 'fireorm'
 
 @Collection('events')

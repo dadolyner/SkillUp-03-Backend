@@ -26,7 +26,7 @@ const nextup = async () => {
         fireorm.initialize(firestore);
         
     } catch (error) {
-        Logger.error(error);
+        Logger.error(`Application failed to connect to Firebase. Reason: ${error}`, 'Firebase');
     }
 
     const fastify = Fastify();
