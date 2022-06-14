@@ -30,11 +30,16 @@ export class AuthService {
             if (!isUserValidated) {
                 if (!doesEmailExist) {
                     this.logger.error(`User with email: ${email} does not exist!`);
-                    throw new UnauthorizedException('Email not exists');
-                } else {
-                    this.logger.error(`User tried to login but has entered Invalid credentials`);
-                    throw new UnauthorizedException('Invalid credentials');
+                    throw new UnauthorizedException('Email not exists')
                 }
+
+                this.logger.error(`User tried to login but has entered Invalid credentials`);
+                throw new UnauthorizedException('Invalid credentials')
+            }
+
+            if (!doesEmailExist.verified) {
+                this.logger.error(`User with email: ${email} has not verified their email!`);
+                throw new UnauthorizedException('Email not verified')
             }
 
             const payload: JwtPayload = { email };
@@ -43,6 +48,7 @@ export class AuthService {
             this.logger.verbose(`User with email: ${email} logged in!`);
 
             return { accessToken };
+
         } catch (error) {
             throw new UnauthorizedException('Invalid credentials');
         }
