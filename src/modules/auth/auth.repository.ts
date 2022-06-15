@@ -8,7 +8,7 @@ import { Logger } from "@nestjs/common";
 import { AuthSignUpCredentialsDto } from "./dto/auth-credentials-signup.dto";
 import { AuthLoginCredentialsDto } from "./dto/auth-credentials-login.dto";
 import SendEmail from "src/mail/mail.config";
-import { EmailParamsDto } from "src/mail/dto/emailData.dto";
+import { VerifyEmailTemplate } from "src/mail/mail.templates";
 
 export class AuthRepository {
     private logger = new Logger('AuthRepository');
@@ -29,11 +29,11 @@ export class AuthRepository {
         user.tokenExpiaryDate = new Date(new Date().getTime() + 600000).toISOString();
         user.verified = false;
 
-        const emailParams: EmailParamsDto = {
-            first_name,
-            last_name,
-            email,
-            token: user.token,
+        const emailData = {
+            to: email,
+            from: 'skulj.david@gmail.com',
+            subject: 'Verify your email',
+            html: VerifyEmailTemplate(first_name, last_name, `${process.env.VERIFY_EMAIL}/${user.token}`),
         }
 
         const emailExists = await this.usersFirebase.whereEqualTo('email', email).find();
@@ -42,7 +42,7 @@ export class AuthRepository {
             throw new ConflictException('User with this email already exist!');
         } else {
             try {
-                await SendEmail(emailParams);
+                await SendEmail(emailData);
                 await this.usersFirebase.create(user)
             }
             catch (error) {

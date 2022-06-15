@@ -1,4 +1,5 @@
-const VerifyEmailTemplate = (first_name: string, last_name: string, verifyLink: string) => {
+// Verify email template
+export const VerifyEmailTemplate = (first_name: string, last_name: string, verifyLink: string) => {
     return `
         <!DOCTYPE html>
         <html lang="en">
@@ -37,6 +38,4 @@ const VerifyEmailTemplate = (first_name: string, last_name: string, verifyLink: 
         </html>
     `;
 }
-
-export default VerifyEmailTemplate;
 
