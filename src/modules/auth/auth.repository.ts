@@ -7,15 +7,12 @@ import { ConflictException, InternalServerErrorException, UnauthorizedException 
 import { Logger } from "@nestjs/common";
 import { AuthSignUpCredentialsDto } from "./dto/auth-credentials-signup.dto";
 import { AuthLoginCredentialsDto } from "./dto/auth-credentials-login.dto";
-import { JwtService } from "@nestjs/jwt";
-import { JwtPayload } from "./jwt/jwt-payload.interface";
+import SendEmail from "src/mail/mail.config";
+import { EmailParamsDto } from "src/mail/dto/emailData.dto";
 
 export class AuthRepository {
     private logger = new Logger('AuthRepository');
-    constructor(
-        public usersFirebase = getRepository(Users),
-        private jwtService: JwtService
-    ) { }
+    constructor(public usersFirebase = getRepository(Users)) { }
 
     // Register user
     async register(registerParams: AuthSignUpCredentialsDto): Promise<void> {
@@ -28,56 +25,53 @@ export class AuthRepository {
         user.email = email
         user.salt = await bcrypt.genSalt();
         user.password = await user.hashPassword(password, user.salt)
-        user.token = null
-        user.tokenExpiaryDate = null
-        user.verified = false
+        user.token = user.generateToken(64)
+        user.tokenExpiaryDate = new Date(new Date().getTime() + 600000).toISOString();
+        user.verified = false;
+
+        const emailParams: EmailParamsDto = {
+            first_name,
+            last_name,
+            email,
+            token: user.token,
+        }
 
         const emailExists = await this.usersFirebase.whereEqualTo('email', email).find();
         if (emailExists.length > 0) {
             this.logger.error(`User with email: ${email} already exists`);
             throw new ConflictException('User with this email already exist!');
         } else {
-            try { this.usersFirebase.create(user) }
+            try {
+                await SendEmail(emailParams);
+                await this.usersFirebase.create(user)
+            }
             catch (error) {
-                this.logger.error(`Internal server error: ${error}`);
+                this.logger.error(error);
                 throw new InternalServerErrorException()
             }
         }
 
-        this.logger.verbose(`User with email: ${email} successfully registered!`);
+        this.logger.verbose(`User with email: ${email} successfully registered! Awaiting mail confirmation.`);
     }
 
-    // Login user
-    async login(loginParams: AuthLoginCredentialsDto): Promise<{ accessToken: string }> {
-        const { email, password } = loginParams;
-        const doesEmailExist = await this.usersFirebase.whereEqualTo('email', email).findOne();
-        const isUserValidated = await this.validateLogin({ email, password });
-
+    // Verify user email
+    async verifyUser(token: string): Promise<void> {
         try {
-            if (!isUserValidated) {
-                if (!doesEmailExist) {
-                    this.logger.error(`User with email: ${email} does not exist!`);
-                    throw new UnauthorizedException('Email not exists')
-                }
+            const user = await this.usersFirebase.whereEqualTo('token', token).findOne();
+            if (user) {
+                user.verified = true;
+                user.token = null;
+                user.tokenExpiaryDate = null;
+                await this.usersFirebase.update(user);
 
-                this.logger.error(`User tried to login but has entered Invalid credentials`);
-                throw new UnauthorizedException('Invalid credentials')
+                this.logger.verbose(`User with email: ${user.email} has successfully verified its email!`);
+            } else {
+                this.logger.error(`User with token: ${token} does not exist!`);
+                throw new UnauthorizedException('Invalid token');
             }
-
-            if (!doesEmailExist.verified) {
-                this.logger.error(`User with email: ${email} has not verified their email!`);
-                throw new UnauthorizedException('Email not verified')
-            }
-
-            const payload: JwtPayload = { email };
-            const accessToken = this.jwtService.sign(payload);
-
-            this.logger.verbose(`User with email: ${email} logged in!`);
-
-            return { accessToken };
-
         } catch (error) {
-            throw new UnauthorizedException('Invalid credentials');
+            this.logger.error(error);
+            throw new InternalServerErrorException();
         }
     }
 

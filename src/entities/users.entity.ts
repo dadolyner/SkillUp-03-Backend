@@ -29,4 +29,13 @@ export class Users {
     deleteSensitiveData(keys: string[]) {
         keys.forEach(key => delete this[key]);
     }
+
+    // Token generator for user
+    generateToken(lenght: number): string {
+        const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let token = '';
+        for (let i = 0; i < lenght; i++) token += chars[Math.floor(Math.random() * chars.length)];
+
+        return token;
+    }
 }
