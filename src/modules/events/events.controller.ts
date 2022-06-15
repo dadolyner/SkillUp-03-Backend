@@ -14,33 +14,33 @@ export class EventsController {
     // Get all events
     @Get()
     async getAllEvents(): Promise<Events[]> {
-        return this.eventsService.getAllEvents();
+        return await this.eventsService.getAllEvents();
     }
 
     // Get event by id
     @Get('/:id')
     async getEventById(@Param('id') id: string): Promise<Events> {
-        return this.eventsService.getEventById(id);
+        return await this.eventsService.getEventById(id);
     }
 
     // Create event
     @UseGuards(AuthGuard())
     @Post()
     async createEvent(@Body() eventParams: CreateEventDTO, @GetUser() user: Users): Promise<Events> {
-        return this.eventsService.createEvent(eventParams, user);
+        return await this.eventsService.createEvent(eventParams, user);
     }
 
     // Edit event
     @UseGuards(AuthGuard())
     @Patch('/edit/:id')
     async editEvent(@Param('id') eventId: string, @Body() eventParams: CreateEventDTO, @GetUser() user: Users): Promise<Events> {
-        return this.eventsService.editEvent(eventId, eventParams, user);
+        return await this.eventsService.editEvent(eventId, eventParams, user);
     }
 
     // Delete event
     @UseGuards(AuthGuard())
     @Delete('/delete/:id')
     async deleteEvent(@Param('id') eventId: string, @GetUser() user: Users): Promise<Events> {
-        return this.eventsService.deleteEvent(eventId, user);
+        return await this.eventsService.deleteEvent(eventId, user);
     }
 }

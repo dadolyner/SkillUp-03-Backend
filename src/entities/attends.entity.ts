@@ -1,4 +1,4 @@
-// Events Entity
+// Attends Entity
 import { Collection } from 'fireorm'
 
 @Collection('attends')

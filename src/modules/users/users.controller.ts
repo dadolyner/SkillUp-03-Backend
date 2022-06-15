@@ -13,6 +13,6 @@ export class UsersController {
     @UseGuards(AuthGuard())
     @Get('/profile')
     async getUserInfo(@GetUser() user: Users): Promise<any> {
-        return this.userservice.getUserInfo(user);
+        return await this.userservice.getUserInfo(user);
     }
 }

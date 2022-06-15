@@ -10,6 +10,34 @@ export class EventsRepository {
     private logger = new Logger('EventsRepository');
     constructor(public eventsFirebase = getRepository(Events)) { }
 
+    // Get all events
+    async getAllEvents(): Promise<Events[]> {
+        try {
+            const events = await this.eventsFirebase.find();
+            if(!events) this.logger.error(`No events found!`);
+            else this.logger.verbose(`Successfully retrieved all ${events.length} events!`);
+            
+            return events;
+        } catch (error) {
+            this.logger.error(`Failed to retrieve all events!`);
+            throw new InternalServerErrorException(`Failed to retrieve all events: ${error}`);
+        }
+    }
+
+    // Get event by id
+    async getEventById(eventId: string): Promise<Events> {
+        try {
+            const event = await this.eventsFirebase.whereEqualTo('id', eventId).findOne();
+            if(!event) this.logger.error(`Event with id: ${eventId} does not exist!`);
+            else this.logger.verbose(`Successfully retrieved details for event with id ${eventId}!`);
+
+            return event;
+        } catch (error) {
+            this.logger.error(`Failed to retrieve details for event with id ${eventId}!`);
+            throw new InternalServerErrorException(`Failed to retrieve details for event with id ${eventId}: ${error}`);
+        }
+    }
+
     // Create event
     async createEvent(eventParams: CreateEventDTO, user: Users): Promise<Events> {
         const { event_name, location, date, max_users, description, image } = eventParams;

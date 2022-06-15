@@ -3,15 +3,21 @@ import { getRepository } from "fireorm";
 import { Users } from "src/entities/users.entity";
 import * as bcrypt from "bcrypt";
 import { v4 as uuid } from "uuid";
-import { ConflictException, InternalServerErrorException } from "@nestjs/common";
+import { ConflictException, InternalServerErrorException, UnauthorizedException } from "@nestjs/common";
 import { Logger } from "@nestjs/common";
 import { AuthSignUpCredentialsDto } from "./dto/auth-credentials-signup.dto";
 import { AuthLoginCredentialsDto } from "./dto/auth-credentials-login.dto";
+import { JwtService } from "@nestjs/jwt";
+import { JwtPayload } from "./jwt/jwt-payload.interface";
 
 export class AuthRepository {
     private logger = new Logger('AuthRepository');
-    constructor(public usersFirebase = getRepository(Users)) { }
+    constructor(
+        public usersFirebase = getRepository(Users),
+        private jwtService: JwtService
+    ) { }
 
+    // Register user
     async register(registerParams: AuthSignUpCredentialsDto): Promise<void> {
         const { first_name, last_name, email, password } = registerParams;
 
@@ -39,6 +45,40 @@ export class AuthRepository {
         }
 
         this.logger.verbose(`User with email: ${email} successfully registered!`);
+    }
+
+    // Login user
+    async login(loginParams: AuthLoginCredentialsDto): Promise<{ accessToken: string }> {
+        const { email, password } = loginParams;
+        const doesEmailExist = await this.usersFirebase.whereEqualTo('email', email).findOne();
+        const isUserValidated = await this.validateLogin({ email, password });
+
+        try {
+            if (!isUserValidated) {
+                if (!doesEmailExist) {
+                    this.logger.error(`User with email: ${email} does not exist!`);
+                    throw new UnauthorizedException('Email not exists')
+                }
+
+                this.logger.error(`User tried to login but has entered Invalid credentials`);
+                throw new UnauthorizedException('Invalid credentials')
+            }
+
+            if (!doesEmailExist.verified) {
+                this.logger.error(`User with email: ${email} has not verified their email!`);
+                throw new UnauthorizedException('Email not verified')
+            }
+
+            const payload: JwtPayload = { email };
+            const accessToken = this.jwtService.sign(payload);
+
+            this.logger.verbose(`User with email: ${email} logged in!`);
+
+            return { accessToken };
+
+        } catch (error) {
+            throw new UnauthorizedException('Invalid credentials');
+        }
     }
 
     // Validate login

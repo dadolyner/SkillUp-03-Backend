@@ -10,7 +10,7 @@ export class AuthController {
 
     @Post('/register')
     async register(@Body() registerParams: AuthSignUpCredentialsDto): Promise<void> {
-        await this.authService.register(registerParams);
+        return await this.authService.register(registerParams);
     }
 
     @Post('/login')
