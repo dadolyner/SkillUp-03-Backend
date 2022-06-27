@@ -25,7 +25,7 @@ export class AuthRepository {
         user.email = email
         user.salt = await bcrypt.genSalt();
         user.password = await user.hashPassword(password, user.salt)
-        user.token = user.generateToken(64)
+        user.token = await user.generateToken(64)
         user.tokenExpiaryDate = new Date(new Date().getTime() + 600000).toISOString();
         user.verified = false;
 

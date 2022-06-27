@@ -21,17 +21,13 @@ export class Users {
     }
 
     // Hash password
-    async hashPassword(password: string, salt: string) {
-        return await bcrypt.hash(password, salt);
-    }
+    async hashPassword(password: string, salt: string): Promise<string> { return await bcrypt.hash(password, salt) }
 
     //Delete sensitive data
-    deleteSensitiveData(keys: string[]) {
-        keys.forEach(key => delete this[key]);
-    }
+    async deleteSensitiveData(keys: string[]): Promise<void> { keys.forEach(key => delete this[key]) }
 
     // Token generator for user
-    generateToken(lenght: number): string {
+    async generateToken(lenght: number): Promise<string> {
         const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         let token = '';
         for (let i = 0; i < lenght; i++) token += chars[Math.floor(Math.random() * chars.length)];
