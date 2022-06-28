@@ -2,7 +2,7 @@
 import { InternalServerErrorException, Logger, UnauthorizedException } from "@nestjs/common";
 import { getRepository } from "fireorm";
 import { Attends } from "src/entities/attends.entity";
-import { Events } from "src/entities/events.entoty";
+import { Events } from "src/entities/events.entity";
 import { Users } from "src/entities/users.entity";
 import { v4 as uuid } from "uuid";
 

@@ -1,7 +1,7 @@
 // Events Repository
 import { ConflictException, InternalServerErrorException, Logger } from "@nestjs/common";
 import { getRepository } from "fireorm";
-import { Events } from "src/entities/events.entoty";
+import { Events } from "src/entities/events.entity";
 import { Users } from "src/entities/users.entity";
 import { CreateEventDTO } from "./dto/create-event.dto";
 import { v4 as uuid } from "uuid";

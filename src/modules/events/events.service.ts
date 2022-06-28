@@ -1,6 +1,6 @@
 // Events Service
 import { Injectable } from '@nestjs/common';
-import { Events } from 'src/entities/events.entoty';
+import { Events } from 'src/entities/events.entity';
 import { Users } from 'src/entities/users.entity';
 import { CreateEventDTO } from './dto/create-event.dto';
 import { EventsRepository } from './events.repository';

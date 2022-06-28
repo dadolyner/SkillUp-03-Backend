@@ -1,7 +1,7 @@
 // Events Controller
 import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { Events } from 'src/entities/events.entoty';
+import { Events } from 'src/entities/events.entity';
 import { Users } from 'src/entities/users.entity';
 import { GetUser } from '../auth/decorator/get-user.decorator';
 import { CreateEventDTO } from './dto/create-event.dto';
