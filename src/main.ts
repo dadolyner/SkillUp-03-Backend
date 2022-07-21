@@ -11,7 +11,7 @@ const nextup = async () => {
     const fastify = Fastify();
     const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter(fastify), { cors: true });
     app.useGlobalPipes(new ValidationPipe());
-    await app.listen(3000, '0.0.0.0');
-    Logger.log('Application is listening on port http://localhost:3000', 'NextUp');
+    await app.listen(3001, '0.0.0.0');
+    Logger.log('Application is listening on port http://localhost:3001', 'NextUp');
 }
 nextup();
